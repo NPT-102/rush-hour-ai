@@ -1,7 +1,4 @@
-from backend.core import hello
+from backend import core
 
-def main():
-  hello()
-  
 if __name__ == "__main__":
-  main()
+    core.o()
