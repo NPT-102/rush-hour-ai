@@ -1,4 +1,6 @@
 from backend import core
 
-if __name__ == "__main__":
-    core.o()
+b = core.map_loader('map.json', 0)
+
+for row in b.board:
+    print(row)
