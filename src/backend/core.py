@@ -17,6 +17,4 @@ def map_loader(path, level):
         )
         vehicles.append(vehicle)
         
-    board = Board(vehicles)
-    return board 
-        
+    return vehicles
