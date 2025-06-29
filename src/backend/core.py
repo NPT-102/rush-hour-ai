@@ -12,7 +12,7 @@ def map_loader(path, level):
         vehicle = Vehicle(
             id=v['id'],
             pos=(v['row'], v['col']),
-            rotation=v['rotation'],
+            orientation=v['rotation'],
             length=v['length']
         )
         vehicles.append(vehicle)
