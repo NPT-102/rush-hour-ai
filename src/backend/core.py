@@ -1,5 +1,5 @@
 import json
-from .gameClass import Board, Vehicle
+from .gameClass import Map, Vehicle
 
 def map_loader(path, level):
     with open(path, 'r') as file:
@@ -7,14 +7,17 @@ def map_loader(path, level):
         
     vehicles_level_data = data[level]
     
-    vehicles = []
+    vehicles = ()
+    state = ()
     for v in vehicles_level_data:
         vehicle = Vehicle(
-            id=v['id'],
-            pos=(v['row'], v['col']),
-            orientation=v['rotation'],
-            length=v['length']
+            v['id'],
+            v['length'],
+            v['orientation']
         )
-        vehicles.append(vehicle)
+        vehicles += (vehicle,)
+
+        pos = (v['row'], v['col'])
+        state += (pos,)
         
-    return vehicles
+    return state, vehicles
