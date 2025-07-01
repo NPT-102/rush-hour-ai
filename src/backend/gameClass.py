@@ -1,4 +1,5 @@
 from collections import deque
+import heapq
 
 class Vehicle:
 	def __init__(self, id: str, len: int, orientation: str):
@@ -14,7 +15,7 @@ class Map:
 		# The targeted car must be at the index 0
 		if vehicles[0].ori != "H":
 			raise ValueError("The targeted car has to be horizontal")
-
+ 
 		self.vehicles = vehicles
 		if not self.validate(state):
 			raise ValueError("The initial state is not valid")
@@ -22,7 +23,7 @@ class Map:
 		self.init_state = state
 
 	def validate(self, state:tuple[tuple[int, int]]):
-		grid = [[" " for _ in range(6)] for _ in range(6)]
+		grid = [[0 for _ in range(6)] for _ in range(6)]
 		
 		for pos, vehicle in zip(state, self.vehicles):
 			i, j = pos
@@ -31,18 +32,18 @@ class Map:
 			if vehicle.ori == "H":
 				if j + vehicle.len > 6: return False
 				for jdx in range(j, j + vehicle.len):
-					if grid[i][jdx] != " ": return False
-					grid[i][jdx] = vehicle.id
+					if grid[i][jdx] != 0: return False
+					grid[i][jdx] = 1
 			else:
 				if i + vehicle.len > 6: return False
 				for idx in range(i, i + vehicle.len):
-					if grid[idx][j] != " ": return False
-					grid[idx][j] = vehicle.id
+					if grid[idx][j] != 0: return False
+					grid[idx][j] = 1
 					
 		return True
 	
-	def generate_move(self, state: tuple[tuple[int, int]]) -> set:
-		generated_state = set()
+	def generate_move(self, state: tuple[tuple[int, int]]) -> set[tuple[int, tuple[int, int]]]:
+		generated_move = set()
 
 		for i in range(len(self.vehicles)):
 			for step in [-1, 1]:
@@ -55,20 +56,17 @@ class Map:
 
 				new_state = tuple(mutable_state)
 				if self.validate(new_state):
-					generated_state.add(new_state)
+					generated_move.add((i, new_state))
 		
-		return generated_state
+		return generated_move
 
 	def is_goal(self, state: tuple[int, int]) -> bool:
 		return state[0][1] == 4
 	
 	def bfs(self) -> list[tuple[tuple[int, int]]]:
 		visited = set()
-		frontiers = deque()
-		parents = {}
-
-		frontiers.append(self.init_state)
-		parents[self.init_state] = None
+		frontiers = deque([self.init_state])
+		parents = {self.init_state: None}
 
 		while frontiers:
 			current = frontiers.popleft()
@@ -81,7 +79,7 @@ class Map:
 					current = parents[current]
 				return path[::-1]
 
-			for state in self.generate_move(current):
+			for i, state in self.generate_move(current):
 				if state not in visited:
 					parents[state] = current
 					frontiers.append(state)
@@ -90,11 +88,8 @@ class Map:
 
 	def dfs(self) -> list[tuple[tuple[int, int]]]:
 		visited = set()
-		frontiers = deque()
-		parents = {}
-
-		frontiers.append(self.init_state)
-		parents[self.init_state] = None
+		frontiers = deque([self.init_state])
+		parents = {self.init_state: None}
 
 		while frontiers:
 			current = frontiers.pop()
@@ -107,11 +102,37 @@ class Map:
 					current = parents[current]
 				return path[::-1]
 
-			for state in self.generate_move(current):
+			for i, state in self.generate_move(current):
 				if state not in visited:
 					parents[state] = current
 					frontiers.append(state)
 
+		return None
+
+	def ucs(self):
+		frontiers = [(0, self.init_state)]
+		parents = {self.init_state: None}
+		true_cost = {self.init_state: 0}
+
+		while frontiers:
+			curr_cost, curr_state = heapq.heappop(frontiers)
+
+			if self.is_goal(curr_state):
+				path = []
+				cost = []
+				while curr_state is not None:
+					path.append(curr_state)
+					cost.append(true_cost[curr_state])
+					curr_state = parents[curr_state]
+				return path[::-1], cost[::-1]
+
+			for i, state in self.generate_move(curr_state):
+				cost = curr_cost + self.vehicles[i].len
+				if state not in true_cost or true_cost[state] > cost:
+					true_cost[state] = cost
+					heapq.heappush(frontiers, (cost, state))
+					parents[state] = curr_state
+		
 		return None
 
 #from copy import deepcopy
