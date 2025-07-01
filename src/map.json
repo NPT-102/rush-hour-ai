@@ -4,49 +4,49 @@
             "id": "S",
             "row": 1,
             "col": 2,
-            "rotation": "horizontal",
+            "orientation": "H",
             "length": 2
         },
         {
             "id": "a",
             "row": 0,
             "col": 0,
-            "rotation": "horizontal",
+            "orientation": "H",
             "length": 2
         },
         {
             "id": "p",
             "row": 1,
             "col": 1,
-            "rotation": "vertical",
+            "orientation": "V",
             "length": 2
         },
         {
             "id": "b",
             "row": 0,
             "col": 4,
-            "rotation": "vertical",
+            "orientation": "V",
             "length": 2
         },
         {
             "id": "q",
             "row": 3,
             "col": 1,
-            "rotation": "vertical",
+            "orientation": "V",
             "length": 3
         },
         {
             "id": "c",
             "row": 4,
             "col": 4,
-            "rotation": "horizontal",
+            "orientation": "H",
             "length": 2
         },
         {
             "id": "r",
             "row": 2,
             "col": 4,
-            "rotation": "horizontal",
+            "orientation": "H",
             "length": 2
         }
     ]

@@ -1,21 +1,12 @@
 from backend import core
-from backend.gameClass import Board
-from backend.search import dfs
+from backend.gameClass import Map
 
-v = core.map_loader('map.json', 0)
-b = Board(v)
-for row in b.board:
-    print(row)
-print('\n')
- 
-a = []
-c = set()
-r = dfs(b, a, c)
-if r:
-    for board in r:
-        for row in board.board:
-            print(row)
-        print('\n')
-        print(a, '\n')
-        print(c, '\n')
-        
+state, vehicles = core.map_loader('map.json', 0)
+m = Map(state, vehicles)
+
+#path = m.bfs()
+path = m.dfs()
+
+for x in path:
+	print(x)
+
