@@ -8,9 +8,9 @@ class ControlButtons(tk.Frame):
         self.create_widget()
 
     def create_widget(self):
-        Button(self, text="Previous", command=lambda: print("Previous action")).pack(side="left")
-        Button(self, text="Play/Pause", command=lambda: print("Play/Pause action")).pack(side="left")
-        Button(self, text="Next", command=lambda: print("Next action")).pack(side="left")
+        Button(self, text="Previous", command=lambda: self.previous_step).pack(side="left")
+        Button(self, text="Play/Pause", command=lambda: self.play_pause).pack(side="left")
+        Button(self, text="Next", command=lambda: self.next_step).pack(side="left")
         Button(self, text="Reset", command=self.reset_game).pack(side="right", padx=(20, 0))
 
     def previous_step(self):
