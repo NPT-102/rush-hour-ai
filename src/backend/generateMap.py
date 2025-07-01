@@ -70,8 +70,7 @@ def rate_level_map(maps: list[list[dict]]):
         m = Map(state, vehicles)
 
         score = 0
-
-        # 1. Số xe
+        # 1. number of vehicles
         score += len(vehicles)
 
         # 2. BFS steps
@@ -85,10 +84,8 @@ def rate_level_map(maps: list[list[dict]]):
             score += ucs_cost[-1] * pow(10, len(bfs_path))
 
         map_scores.append((score, vehicles_raw))
-    # Sắp xếp từ dễ đến khó
     map_scores.sort(key=lambda x: x[0])
 
-    # Trả lại danh sách đã sắp theo độ khó
     return map_scores
 
 
@@ -110,5 +107,5 @@ def generate_map_json(num_map):
         )
 
 if __name__ == "__main__":
-    generate_map_json(10)  # tạo 10 map và lưu vào map.json
-    print("✅ Đã tạo xong file map.json!")
+    generate_map_json(10) 
+    print("Done generating map.json with 10 levels.")
