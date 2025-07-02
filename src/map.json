@@ -2,7 +2,7 @@
     [
         {
             "id": "S",
-            "row": 1,
+            "row": 2,
             "col": 2,
             "orientation": "H",
             "length": 2
@@ -46,7 +46,7 @@
             "id": "r",
             "row": 2,
             "col": 4,
-            "orientation": "H",
+            "orientation": "V",
             "length": 2
         }
     ]
