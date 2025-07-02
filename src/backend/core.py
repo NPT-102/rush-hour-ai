@@ -2,6 +2,9 @@ import json
 from .gameClass import Map, Vehicle
 
 def map_loader(path, level):
+    if level is None:
+        return None, None
+    
     with open(path, 'r') as file:
         data = json.load(file)
         
