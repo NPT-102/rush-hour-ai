@@ -6,7 +6,6 @@ m = Map(state, vehicles)
 
 #path = m.bfs()
 #path = m.dfs()
-
 path, cost = m.ucs()
 
 for p, c in zip(path, cost):
