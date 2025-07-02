@@ -1,4 +1,3 @@
-from PIL import Image, ImageTk
 import tkinter as tk
 
 class Grid:
@@ -16,7 +15,7 @@ class Grid:
     def create_grid(self):
         for r in range(self.rows):
             for c in range(self.cols):
-                x1 = c * self.cell_size
+                x1 = c* self.cell_size
                 y1 = r * self.cell_size
                 x2 = x1 + self.cell_size
                 y2 = y1 + self.cell_size

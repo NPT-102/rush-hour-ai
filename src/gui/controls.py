@@ -1,5 +1,4 @@
 import tkinter as tk
-from tkinter import Button
 
 class ControlButtons(tk.Frame):
     def __init__(self, parent=None):
@@ -8,10 +7,10 @@ class ControlButtons(tk.Frame):
         self.create_widget()
 
     def create_widget(self):
-        Button(self, text="Previous", command=lambda: self.previous_step).pack(side="left")
-        Button(self, text="Play/Pause", command=lambda: self.play_pause).pack(side="left")
-        Button(self, text="Next", command=lambda: self.next_step).pack(side="left")
-        Button(self, text="Reset", command=self.reset_game).pack(side="right", padx=(20, 0))
+        tk.Button(self, text="Previous", command=self.previous_step).pack(side="left")
+        tk.Button(self, text="Play/Pause", command=self.play_pause).pack(side="left")
+        tk.Button(self, text="Next", command=self.next_step).pack(side="left")
+        tk.Button(self, text="Reset", command=self.reset_game).pack(side="right", padx=(20, 0))
 
     def previous_step(self):
         print("Previous step")
