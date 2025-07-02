@@ -43,6 +43,8 @@ def generate_random_map(num_v):
             row = random.randint(0, grid_size - length)
             col = random.randint(0, grid_size - 1)
 
+        if orientation == "H" and row == row_goal:
+            continue
         new_vehicle = {
             "id": id,
             "length": length,
