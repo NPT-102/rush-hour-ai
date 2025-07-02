@@ -21,11 +21,14 @@ class Map:
 			raise ValueError("The initial state is not valid")
 		
 		self.init_state = state
+		self.target = self.vehicles[0]
 
 	def validate(self, state:tuple[tuple[int, int]]):
 		grid = [[0 for _ in range(6)] for _ in range(6)]
 		
-		for pos, vehicle in zip(state, self.vehicles):
+		for index in range(len(self.vehicles)):
+			pos, vehicle = state[index], self.vehicles[index]
+
 			i, j = pos
 			if (i < 0 or i >= 6) or (j < 0 or j >= 6): return False
 
@@ -42,8 +45,8 @@ class Map:
 					
 		return True
 	
-	def generate_move(self, state: tuple[tuple[int, int]]) -> set[tuple[int, tuple[int, int]]]:
-		generated_move = set()
+	def generate_move(self, state: tuple[tuple[int, int]]) -> list[tuple[int, tuple[int, int]]]:
+		generated_move = []
 
 		for i in range(len(self.vehicles)):
 			for step in [-1, 1]:
@@ -56,7 +59,7 @@ class Map:
 
 				new_state = tuple(mutable_state)
 				if self.validate(new_state):
-					generated_move.add((i, new_state))
+					generated_move.append((i, new_state))
 		
 		return generated_move
 
@@ -64,13 +67,13 @@ class Map:
 		return state[0][1] == 4
 	
 	def bfs(self) -> list[tuple[tuple[int, int]]]:
-		visited = set()
+		visited = []
 		frontiers = deque([self.init_state])
 		parents = {self.init_state: None}
 
 		while frontiers:
 			current = frontiers.popleft()
-			visited.add(current)
+			visited.append(current)
 
 			if self.is_goal(current):
 				path = []
@@ -87,13 +90,13 @@ class Map:
 		return None
 
 	def dfs(self) -> list[tuple[tuple[int, int]]]:
-		visited = set()
+		visited = []
 		frontiers = deque([self.init_state])
 		parents = {self.init_state: None}
 
 		while frontiers:
 			current = frontiers.pop()
-			visited.add(current)
+			visited.append(current)
 
 			if self.is_goal(current):
 				path = []
@@ -109,7 +112,7 @@ class Map:
 
 		return None
 
-	def ucs(self):
+	def ucs(self) -> list:
 		frontiers = [(0, self.init_state)]
 		parents = {self.init_state: None}
 		true_cost = {self.init_state: 0}
@@ -134,6 +137,29 @@ class Map:
 					parents[state] = curr_state
 		
 		return None
+	
+	def heuristic(self, state: tuple[tuple[int, int]]) -> int:
+		'''
+		The state has to be pre-validated
+		Counts the number of cars blocking the targeted car from reaching the goal
+		'''
+
+		count = 0
+
+		for idx in range(1, len(self.vehicles)):
+			i, j = state[idx]
+			target_i, target_j = state[0]
+			if self.vehicles[idx].ori == "V":
+				if (0 < target_i - i < self.vehicles[idx].len) and (target_j < j):
+					count += 1
+			else:
+				if (target_i == i) and (target_j < j):
+					count += 1
+
+		return count
+
+	def a_star(self):
+		pass
 
 #from copy import deepcopy
 #
