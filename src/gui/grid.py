@@ -1,16 +1,24 @@
 import tkinter as tk
+from PIL import Image, ImageTk
 
 class Grid:
     def __init__(self, parent):
         self.parent = parent
-        self.rows = 6
-        self.cols = 6
-        self.cell_size = 60
-        self.canvas = tk.Canvas(parent, width=self.cols * self.cell_size, height=self.rows * self.cell_size, bg="lightgray")
+        self.rows = 8
+        self.cols = 9
+        self.cell_size = 70
+        self.canvas = tk.Canvas(parent, width=self.cols * self.cell_size, height=self.rows * self.cell_size)
         self.canvas.pack()
         
         self.cell_squares = [[None for _ in range(self.cols)] for _ in range(self.rows)]
-        self.create_grid()
+        self.set_bg()
+        # self.create_grid()
+        
+    def set_bg(self):
+        board_img = Image.open("assets/board.png")
+        self.board_img = ImageTk.PhotoImage(board_img)
+        
+        self.canvas.create_image(0, 0, anchor=tk.NW, image=self.board_img)
         
     def create_grid(self):
         for r in range(self.rows):

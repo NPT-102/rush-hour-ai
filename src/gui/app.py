@@ -5,7 +5,7 @@ from canvas import Canvas
 
 window = tk.Tk()
 window.title("Rush Hour")
-window.geometry("800x500")
+window.geometry("800x700")
 
 # Create an instance of Selector with example options
 map_options = ["Map 1", "Map 2", "Map 3"]
