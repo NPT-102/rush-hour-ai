@@ -85,6 +85,12 @@ def rate_level_map(maps: list[list[dict]]):
             _, ucs_cost = ucs_result
             score += ucs_cost[-1] * pow(10, len(bfs_path))
 
+        # 4. A* cost
+        a_star_result = m.a_star()
+        if a_star_result:
+            _, a_star_cost = a_star_result
+            score += a_star_cost[-1] * pow(10, len(bfs_path) + len(ucs_cost))
+
         map_scores.append((score, vehicles_raw))
     map_scores.sort(key=lambda x: x[0])
 
