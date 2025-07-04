@@ -114,6 +114,36 @@ def generate_map_json(num_map):
             f, indent=4
         )
 
+def generate_map_unsolve(option: str):
+    if(option == "bfs"):
+        while True:
+            vehicles = generate_random_map(6)
+            m = Map(tuple(tuple(v["pos"]) for v in vehicles), tuple(Vehicle(v["id"], v["length"], v["orientation"]) for v in vehicles))
+            if not m.bfs():
+                return vehicles
+    elif(option == "dfs"):
+        while True:
+            vehicles = generate_random_map(6)
+            m = Map(tuple(tuple(v["pos"]) for v in vehicles), tuple(Vehicle(v["id"], v["length"], v["orientation"]) for v in vehicles))
+            if not m.dfs():
+                return vehicles
+    elif(option == "ucs"):
+        while True:
+            vehicles = generate_random_map(6)
+            m = Map(tuple(tuple(v["pos"]) for v in vehicles), tuple(Vehicle(v["id"], v["length"], v["orientation"]) for v in vehicles))
+            if not m.ucs():
+                return vehicles
+    elif(option == "a_star"):
+        while True:
+            vehicles = generate_random_map(6)
+            m = Map(tuple(tuple(v["pos"]) for v in vehicles), tuple(Vehicle(v["id"], v["length"], v["orientation"]) for v in vehicles))
+            if not m.a_star():
+                return vehicles
+    else:
+        raise ValueError("Invalid option. Choose from 'bfs', 'dfs', 'ucs', or 'a_star'.")
+
+    
+
 if __name__ == "__main__":
     generate_map_json(10) 
     print("Done generating map.json with 10 levels.")
