@@ -206,7 +206,7 @@ class Map:
 
 		for col in range(target_j + s_len, 6):
 			pos = (target_i, col)
-			blocker_inx = None
+			blocker_idx = None
 			for idx in range(1, len(self.vehicles)):
 				
 				Vi, Vj = state[idx]

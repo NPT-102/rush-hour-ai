@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import messagebox
 from .selector import Selector   
 from .controls import ControlButtons
 from .grid import Grid
@@ -16,9 +17,12 @@ def gui(map_loader, map):
     m = None
     states = None
     step = -1
-    cost = 0    
+    cost = 0
 
     # Callback functions
+    def found_no_solution():
+        messagebox.showinfo("Solution Not Found", "No solution found for the selected map with the search algorithm. Please try a different map or algorithm.")
+    
     def on_change(search_algo=None, costList=None):
         nonlocal step, cost
         step += 1
@@ -37,6 +41,9 @@ def gui(map_loader, map):
         stats.update_stats(step, cost)
 
     def on_search_select(search_algo):
+        if m is None:
+            messagebox.showwarning("Warning", "Please select a map first.")
+            return
         nonlocal states, cost
         if search_algo == "BFS":
             states = m.bfs()
@@ -44,37 +51,60 @@ def gui(map_loader, map):
             states = m.dfs()
         elif search_algo == "UCS":
             states, costList = m.ucs()
+        elif search_algo == "A*":
+            states, costList = m.a_star()
+         
+        if states is not None:
             
-        for i, state in enumerate(states):
-            on_change(search_algo=search_algo, costList=costList if search_algo == "UCS" else None)
-            grid.clear_state()
-            grid.update_state(state)
-            stats.update_stats(step, cost)
-            window.update()
-            if i < len(states) - 1:
-                window.after(1000)
+            def path(i=0):
+                if i < len(states):
+                    if controls.is_playing.get():
+                        on_change(search_algo=search_algo, costList=costList if search_algo in ["UCS", "A*"] else None)
+                        grid.clear_state()
+                        grid.update_state(states[i])
+                        stats.update_stats(step, cost)
+                        window.update()
+                        window.after(1000, lambda: path(i + 1))
+                    else:
+                        window.after(100, lambda: path(i))
+                else:            
+                    messagebox.showinfo("Search Complete", f"Search completed using {search_algo}. Total steps: {step}, Total cost: {cost}.")
+                    exit()       
             
-        # Display the car get out the map
-        origin_map = states[-1]
-        out_map = []
-        for i in range (0, 3):
-            l = []
-            for j in range(len(vehicles)):
-                if j == 0:
-                    l.append((origin_map[j][0], origin_map[j][1] + i))
-                else:
-                    l.append((origin_map[j][0], origin_map[j][1]))
-            out_map.append(l)
+            # Display the car get out the map
+            def exit(i=0):
+                if i >= 3:
+                    return
+
+                origin_map = states[-1]
+                out_path = []
+                for j in range(len(vehicles)):
+                    if j == 0:
+                        out_path.append((origin_map[j][0], origin_map[j][1] + i))
+                    else:
+                        out_path.append((origin_map[j][0], origin_map[j][1]))
+
+                grid.clear_state()
+                grid.update_state(out_path)
+                window.after(1000, lambda: exit(i + 1))
+        else:
+            found_no_solution()
+        path()        
             
-        for i, state in enumerate(out_map):
-            grid.clear_state()
-            grid.update_state(state)
-            window.update()
-            if i < len(out_map) - 1:
-                window.after(1000)
+    def reset_game():
+        nonlocal init_state, vehicles, m, step, cost, states
+        init_state = None
+        vehicles = None
+        m = None
+        states = None
+        step = -1
+        cost = 0
+        grid.clear_state()
+        stats.update_stats(step, cost)
+        messagebox.showinfo("Game Reset", "The game has been reset.")
 
     map_options = list(range(1, 11))
-    search_options = ["BFS", "DFS", "UCS"]
+    search_options = ["BFS", "DFS", "UCS", "A*"]
     selectors = Selector(
         parent=window,
         map_options=map_options,
@@ -92,7 +122,7 @@ def gui(map_loader, map):
     grid = Grid(parent=window, vehicles=vehicles, state=init_state)
 
     # Create an instance of ControlButtons
-    controls = ControlButtons()
+    controls = ControlButtons(reset_game=reset_game)
     controls.pack(pady=10)
 
     window.mainloop()
