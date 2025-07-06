@@ -26,7 +26,7 @@ def gui(map_loader, map):
     def on_change(search_algo=None, costList=None):
         nonlocal step, cost
         step += 1
-        if search_algo == "UCS":
+        if search_algo in ["UCS", "A*"]:
             cost = costList[step]
         else:
             cost = step
