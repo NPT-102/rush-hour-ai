@@ -6,7 +6,8 @@ m = Map(state, vehicles)
 
 #path = m.bfs()
 #path = m.dfs()
-path, cost = m.ucs()
+#path, cost = m.ucs()
+path, cost = m.a_star()
 
 for p, c in zip(path, cost):
 	print(f"{p} - {c}")
