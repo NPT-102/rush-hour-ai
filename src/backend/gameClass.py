@@ -66,10 +66,12 @@ class Map:
 	def is_goal(self, state: tuple[int, int]) -> bool:
 		return state[0][1] == 4
 	
-	def bfs(self) -> list[tuple[tuple[int, int]]]:
+	def bfs(self, init_state = None) -> list[tuple[tuple[int, int]]]:
+		if init_state is None:
+			init_state = self.init_state
 		visited = []
-		frontiers = deque([self.init_state])
-		parents = {self.init_state: None}
+		frontiers = deque([init_state])
+		parents = {init_state: None}
 
 		while frontiers:
 			current = frontiers.popleft()
@@ -110,7 +112,7 @@ class Map:
 					parents[state] = current
 					frontiers.append(state)
 
-		return None
+		return []
 
 	def ucs(self) -> list:
 		frontiers = [(0, self.init_state)]
