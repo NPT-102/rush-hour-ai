@@ -8,7 +8,7 @@ def map_loader(path, level):
     with open(path, 'r') as file:
         data = json.load(file)
         
-    vehicles_level_data = data[level]
+    vehicles_level_data = data[level]['vehicles']
     
     vehicles = ()
     state = ()
@@ -20,7 +20,8 @@ def map_loader(path, level):
         )
         vehicles += (vehicle,)
 
-        pos = (v['row'], v['col'])
+        pos = tuple(v['pos'])
         state += (pos,)
         
     return state, vehicles
+        
