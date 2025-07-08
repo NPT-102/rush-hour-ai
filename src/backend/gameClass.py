@@ -231,8 +231,6 @@ class Map:
 
 		while frontiers:
 			curr_cost, curr_state = heapq.heappop(frontiers)
-			if curr_cost > true_cost[curr_state]:
-				continue
 
 			if self.is_goal(curr_state):
 				path = []

@@ -92,7 +92,7 @@ class RushHourApp:
         elif search_algo == "UCS":
             self.states, self.costList, self.expanded_nodes = self.map_object.ucs()
         elif search_algo == "A*":
-            self.states, self.costList = self.map_object.a_star()
+            self.states, self.costList, self.expanded_nodes = self.map_object.a_star()
         
         self.search_time = round(time.time() - start_time, 2)
         self.stats.update_time(self.search_time)
