@@ -5,6 +5,7 @@ from .controls import ControlButtons
 from .grid import Grid
 from .stats import Stats
 from backend.gameClass import Map
+import time 
 
 def gui(map_loader, map):
     window = tk.Tk()
@@ -18,6 +19,7 @@ def gui(map_loader, map):
     states = None
     step = -1
     cost = 0
+    search_time = 0
 
     # Callback functions
     def found_no_solution():
@@ -38,13 +40,16 @@ def gui(map_loader, map):
         grid.update(vehicles=vehicles, state=init_state)
         step = -1
         cost = 0
+        search_time = 0
+        stats.update_time(search_time)
         stats.update_stats(step, cost)
 
     def on_search_select(search_algo):
         if m is None:
             messagebox.showwarning("Warning", "Please select a map first.")
             return
-        nonlocal states, cost
+        nonlocal states, cost, search_time
+        start_time = time.time()
         if search_algo == "BFS":
             states = m.bfs()
         elif search_algo == "DFS":
@@ -53,7 +58,8 @@ def gui(map_loader, map):
             states, costList = m.ucs()
         elif search_algo == "A*":
             states, costList = m.a_star()
-         
+        search_time = round(time.time() - start_time, 2)
+        stats.update_time(search_time)
         if states is not None:
             
             def path(i=0):
@@ -101,6 +107,8 @@ def gui(map_loader, map):
         cost = 0
         grid.clear_state()
         stats.update_stats(step, cost)
+        search_time = 0
+        stats.update_time(search_time)
         messagebox.showinfo("Game Reset", "The game has been reset.")
 
     map_options = list(range(1, 11))
