@@ -79,7 +79,7 @@ class RushHourApp:
             messagebox.showwarning("Warning", "Please select a map first.")
             return
 
-        self.reset()
+        self.reset(False)
         self.costList = []
         start_time = time.time()
         if search_algo == "BFS":
@@ -110,6 +110,7 @@ class RushHourApp:
             return
         
         if self.step + 1 >= len(self.states):
+            messagebox.showinfo("End of Solution", "Reached the end of the solution path.")
             self.exit()
             return
 
@@ -150,7 +151,7 @@ class RushHourApp:
             self.show_path()
             
     
-    def reset(self):
+    def reset(self, true_reset=True):
         self.is_running = False
         self.controls.toggled_play_pause(self.is_running)
         self.step = -1
@@ -160,6 +161,8 @@ class RushHourApp:
         self.stats.update_time(self.search_time)
         self.gameDisplay.clear_state()
         self.gameDisplay.update(self.vehicles, self.init_state)
+        if true_reset:
+            messagebox.showinfo("Game reset", "The game has been reset to its initial state.")
 
 
     def run(self):
