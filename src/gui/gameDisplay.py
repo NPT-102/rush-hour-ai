@@ -1,11 +1,9 @@
 import tkinter as tk
-from tkinter import Canvas
-import random
 from PIL import Image, ImageTk
 
 PADDING = 70
 
-class Grid(Canvas):
+class GameDisplay(tk.Frame):
     def __init__(self, parent, vehicles, state):
         super().__init__(parent)
         self.vehicles = vehicles
@@ -16,12 +14,12 @@ class Grid(Canvas):
         self.canvas = tk.Canvas(parent, width=self.cols * self.cell_size, height=self.rows * self.cell_size)
         self.canvas.pack()
         
-        self.set_bg()
+        self.set_background()
         if state is not None:
-            self.random_assets()
+            self.set_assets()
             self.set_vehicles()
         
-    def set_bg(self):
+    def set_background(self):
         board_img = Image.open("gui/assets/board.png")
         self.board_img = ImageTk.PhotoImage(board_img)
         
@@ -34,7 +32,7 @@ class Grid(Canvas):
 
             self.canvas.create_image(x, y, anchor=tk.NW, image=self.imgs[i])
             
-    def random_assets(self):
+    def set_assets(self):
         self.imgs = []
         for i in range(len(self.vehicles)):
             dir = "gui/assets/"
@@ -42,15 +40,15 @@ class Grid(Canvas):
                 dir = dir + "S.png"
             else:
                 if self.vehicles[i].len == 2:
-                    ran = random.randint(0, 2)
-                    dir = dir + "two-" + str(ran) + ".png"
+                    dir = dir + "two-" + str(i % 3) + ".png"
                 elif self.vehicles[i].len == 3:
-                    ran = random.randint(0, 2)
-                    dir = dir + "three-" + str(ran) + ".png"
+                    dir = dir + "three-" + str(i % 3) + ".png"
                     
             img = Image.open(dir)
             if self.vehicles[i].ori == 'H':
-                img = img.rotate(-90, expand=True)
+                img = img.rotate(pow(-1, (i + 1) % 2) * 90, expand=True)
+            elif self.vehicles[i].ori == 'V':
+                img = img.rotate((i % 2) * 180, expand=True)
             img = ImageTk.PhotoImage(img)
             self.imgs.append(img)
     
@@ -61,10 +59,10 @@ class Grid(Canvas):
     def update(self, vehicles, state):
         self.vehicles = vehicles
         self.state = state
-        self.random_assets()
+        self.set_assets()
         self.set_vehicles()
         
     def clear_state(self):
         self.canvas.delete("all")
-        self.set_bg()
+        self.set_background()
         

@@ -1,136 +1,166 @@
 import tkinter as tk
 from tkinter import messagebox
-from .selector import Selector   
-from .controls import ControlButtons
-from .grid import Grid
-from .stats import Stats
+import time
+
+from gui.selector import Selector   
+from gui.controls import ControlButtons
+from gui.stats import Stats
+from gui.gameDisplay import GameDisplay
 from backend.gameClass import Map
-import time 
 
-def gui(map_loader, map):
-    window = tk.Tk()
-    window.title("Rush Hour")
-    window.geometry("800x700")
 
-    # Initial state
-    init_state = None
-    vehicles = None
-    m = None
-    states = None
-    step = -1
-    cost = 0
-    search_time = 0
+class RushHourApp:
+    def __init__(self, map_loader, map, number_of_maps=10):
+        self.map_loader = map_loader
+        self.map_file = map
+        self.window = tk.Tk()
+        self.window.title("Rush Hour")
+        self.window.geometry("800x700")
+        
+        # Initial state
+        self.init_state = None
+        self.vehicles = None
+        self.map_object = None
+        self.states = None
+        self.step = -1
+        self.cost = 0
+        self.search_time = 0
+        self.is_running = False
+        
 
-    # Callback functions
-    def found_no_solution():
-        messagebox.showinfo("Solution Not Found", "No solution found for the selected map with the search algorithm. Please try a different map or algorithm.")
+        map_options = list(range(1, number_of_maps + 1))
+        search_options = ["BFS", "DFS", "UCS", "A*"]
+        self.selectors = Selector(
+            parent=self.window,
+            map_options=map_options,
+            search_options=search_options,
+            on_map_select=self.on_map_select,
+            on_search_select=self.on_search_select
+        )
+        self.selectors.pack(pady=10)
+        
+        self.gameDisplay = GameDisplay(parent=self.window, vehicles=self.vehicles, state=self.init_state)
+        self.gameDisplay.pack(pady=10)
+        
+        self.stats = Stats(parent=self.window, step=self.step, cost=self.cost)
+        self.stats.pack(pady=10)
+
+        self.controls = ControlButtons(
+            parent=self.window,
+            play_pause=self.play_pause,
+            on_reset=self.reset
+        )
+        self.controls.pack(pady=10)
+
     
-    def on_change(search_algo=None, costList=None):
-        nonlocal step, cost
-        step += 1
-        if search_algo in ["UCS", "A*"]:
-            cost = costList[step]
+    def on_change(self):
+        self.step += 1
+        if self.search_algo == "UCS" or self.search_algo == "A*":
+            self.cost = self.costList[self.step]
         else:
-            cost = step
+            self.cost = self.step
+        self.stats.update_stats(self.step, self.cost)
             
-    def on_map_select(map_id):
-        nonlocal init_state, vehicles, m, step, cost
-        init_state, vehicles = map_loader(map, int(map_id) - 1)
-        m = Map(init_state, vehicles)
-        grid.update(vehicles=vehicles, state=init_state)
-        step = -1
-        cost = 0
-        search_time = 0
-        stats.update_time(search_time)
-        stats.update_stats(step, cost)
 
-    def on_search_select(search_algo):
-        if m is None:
+    def on_map_select(self, map_id):
+        self.map_id = map_id
+        self.init_state, self.vehicles = self.map_loader(self.map_file, int(map_id) - 1)
+        self.map_object = Map(self.init_state, self.vehicles)
+        self.gameDisplay.update(vehicles=self.vehicles, state=self.init_state)
+        self.step = -1
+        self.cost = 0
+        search_time = 0
+        self.stats.update_time(search_time)
+        self.stats.update_stats(self.step, self.cost)
+
+
+    def on_search_select(self, search_algo):
+        if self.map_object is None:
             messagebox.showwarning("Warning", "Please select a map first.")
             return
-        nonlocal states, cost, search_time
+
+        self.reset()
+        self.costList = []
         start_time = time.time()
         if search_algo == "BFS":
-            states = m.bfs()
+            self.states = self.map_object.bfs()
         elif search_algo == "DFS":
-            states = m.dfs()
+            self.states = self.map_object.dfs()
         elif search_algo == "UCS":
-            states, costList = m.ucs()
+            self.states, self.costList = self.map_object.ucs()
         elif search_algo == "A*":
-            states, costList = m.a_star()
-        search_time = round(time.time() - start_time, 2)
-        stats.update_time(search_time)
-        if states is not None:
-            
-            def path(i=0):
-                if i < len(states):
-                    if controls.is_playing.get():
-                        on_change(search_algo=search_algo, costList=costList if search_algo in ["UCS", "A*"] else None)
-                        grid.clear_state()
-                        grid.update_state(states[i])
-                        stats.update_stats(step, cost)
-                        window.update()
-                        window.after(1000, lambda: path(i + 1))
-                    else:
-                        window.after(100, lambda: path(i))
-                else:            
-                    messagebox.showinfo("Search Complete", f"Search completed using {search_algo}. Total steps: {step}, Total cost: {cost}.")
-                    exit()       
-            
-            # Display the car get out the map
-            def exit(i=0):
-                if i >= 3:
-                    return
+            self.states, self.costList = self.map_object.a_star()
+        
+        self.search_time = round(time.time() - start_time, 2)
+        self.stats.update_time(self.search_time)
+        self.search_algo = search_algo
+        
+        if self.states is None:
+            messagebox.showinfo("Solution Not Found",
+                                "No solution found for the selected map with the search algorithm. Please try a different map or algorithm.")
+        
+        self.is_running = True
+        self.controls.toggled_play_pause(self.is_running)
+        self.show_path()
 
-                origin_map = states[-1]
-                out_path = []
-                for j in range(len(vehicles)):
-                    if j == 0:
-                        out_path.append((origin_map[j][0], origin_map[j][1] + i))
-                    else:
-                        out_path.append((origin_map[j][0], origin_map[j][1]))
-
-                grid.clear_state()
-                grid.update_state(out_path)
-                window.after(1000, lambda: exit(i + 1))
-        else:
-            found_no_solution()
-        path()        
-            
-    def reset_game():
-        nonlocal init_state, vehicles, m, step, cost, states
-        init_state = None
-        vehicles = None
-        m = None
-        states = None
-        step = -1
-        cost = 0
-        grid.clear_state()
-        stats.update_stats(step, cost)
-        search_time = 0
-        stats.update_time(search_time)
-        messagebox.showinfo("Game Reset", "The game has been reset.")
-
-    map_options = list(range(1, 11))
-    search_options = ["BFS", "DFS", "UCS", "A*"]
-    selectors = Selector(
-        parent=window,
-        map_options=map_options,
-        search_options=search_options,
-        on_map_select=on_map_select,
-        on_search_select=on_search_select
-    )
-    selectors.pack(pady=10)
     
-    # Step and cost
-    stats = Stats(parent=window, step=step, cost=cost)
-    stats.pack(pady=10)
 
-    # Create an instance of the Grid (empty at first)
-    grid = Grid(parent=window, vehicles=vehicles, state=init_state)
+    def show_path(self):
+        if not self.is_running:
+            return
+        
+        if self.step + 1 >= len(self.states):
+            self.exit()
+            return
 
-    # Create an instance of ControlButtons
-    controls = ControlButtons(reset_game=reset_game)
-    controls.pack(pady=10)
+        self.show_step()
 
-    window.mainloop()
+        self.window.after(1000, lambda: self.show_path())
+    
+
+    def show_step(self):
+            state = self.states[self.step + 1]
+            self.on_change()
+            self.gameDisplay.clear_state()
+            self.gameDisplay.update_state(state)
+            self.window.update()
+        
+    
+    def exit(self, i=0):
+        if i >= 3:
+            return
+
+        origin_map = self.states[-1]
+        out_path = []
+        for j in range(len(self.vehicles)):
+            if j == 0:
+                out_path.append((origin_map[j][0], origin_map[j][1] + i))
+            else:
+                out_path.append((origin_map[j][0], origin_map[j][1]))
+
+        self.gameDisplay.clear_state()
+        self.gameDisplay.update_state(out_path)
+        self.window.after(1000, lambda: self.exit(i + 1))
+    
+    
+    def play_pause(self):
+        self.is_running = not self.is_running
+        self.controls.toggled_play_pause(self.is_running)
+        if self.is_running:
+            self.show_path()
+            
+    
+    def reset(self):
+        self.is_running = False
+        self.controls.toggled_play_pause(self.is_running)
+        self.step = -1
+        self.cost = 0
+        self.stats.update_stats(self.step, self.cost)
+        self.search_time = 0
+        self.stats.update_time(self.search_time)
+        self.gameDisplay.clear_state()
+        self.gameDisplay.update(self.vehicles, self.init_state)
+
+
+    def run(self):
+        self.window.mainloop()

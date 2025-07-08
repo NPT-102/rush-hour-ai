@@ -10,7 +10,7 @@ class Selector(tk.Frame):
         self.create_widget(map_options, search_options)
 
     def create_widget(self, map_options, search_options):
-        map_label = tk.Label(self, text="Map:")
+        map_label = tk.Label(self, text="Level:")
         map_label.pack(side="left", padx=(10, 0))
         map_chosen = tk.StringVar()
         map_chosen.set(map_options[0])
@@ -19,11 +19,11 @@ class Selector(tk.Frame):
         mapBtn = tk.Button(self, text="Select", command=lambda: self.on_map_select(map_chosen.get()))
         mapBtn.pack(side="left", padx=(5, 0))
 
-        search_label = tk.Label(self, text="Search:")
+        search_label = tk.Label(self, text="Search strategy:")
         search_label.pack(side="left", padx=(30, 0))
         search_chosen = tk.StringVar()
         search_chosen.set(search_options[0])
         search_drop = tk.OptionMenu(self, search_chosen, *search_options)
         search_drop.pack(side="left", padx=(5, 0))
-        searchBtn = tk.Button(self, text="Search", command=lambda: self.on_search_select(search_chosen.get()))
-        searchBtn.pack(side="left", padx=(5, 0))
+        searchBtn = tk.Button(self, text="Start search", command=lambda: self.on_search_select(search_chosen.get()))
+        searchBtn.pack(side="left", padx=(200, 0))

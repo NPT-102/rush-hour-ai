@@ -1,7 +1,7 @@
 import tkinter as tk
 
 class Stats(tk.Frame):
-    def __init__(self, parent=None, step=0, cost=0, time = 0):
+    def __init__(self, parent=None, step=0, cost=0, time=0):
         super().__init__(parent)
         self.parent = parent
         if step < 0:
@@ -9,7 +9,7 @@ class Stats(tk.Frame):
         else:
             self.step = step
         self.cost = cost
-        self.time = time;
+        self.time = time
         self.create_widget()
 
     def create_widget(self):
@@ -37,4 +37,3 @@ class Stats(tk.Frame):
     def update_time(self, time):
         self.time = time
         self.time_label.config(text=str(self.time) + "s")
-        
