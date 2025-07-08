@@ -66,10 +66,12 @@ class Map:
 	def is_goal(self, state: tuple[int, int]) -> bool:
 		return state[0][1] == 4
 	
-	def bfs(self) -> list[tuple[tuple[int, int]]]:
+	def bfs(self, init_state = None) -> list[tuple[tuple[int, int]]]:
+		if init_state is None:
+			init_state = self.init_state
 		visited = []
-		frontiers = deque([self.init_state])
-		parents = {self.init_state: None}
+		frontiers = deque([init_state])
+		parents = {init_state: None}
 
 		while frontiers:
 			current = frontiers.popleft()
@@ -110,7 +112,7 @@ class Map:
 					parents[state] = current
 					frontiers.append(state)
 
-		return None
+		return []
 
 	def ucs(self) -> list:
 		frontiers = [(0, self.init_state)]
@@ -138,28 +140,131 @@ class Map:
 		
 		return None
 	
+	def blocking_chain_depth(self, state, inx_blocker, visited=None, depth=1)->int:
+		if visited is None:
+			visited = set()
+
+		if inx_blocker in visited:
+			return float("inf")
+
+		for move_state in self.bfs(state):
+			if move_state[inx_blocker] != state[inx_blocker]:
+				return depth
+			
+
+		visited.add(inx_blocker)
+		blocker = self.vehicles[inx_blocker]
+		i, j = state[inx_blocker]
+		blocked_positions = []
+		if blocker.ori == "H":
+			for c in range(j, j + blocker.len):
+				blocked_positions.append((i, c))
+		else:
+			for r in range(i, i + blocker.len):
+				blocked_positions.append((r, j))
+		
+		for pos in blocked_positions:
+			for idx in range(1, len(self.vehicles)):
+				if idx == inx_blocker:
+					continue
+				Vi, Vj = state[idx]
+				V = self.vehicles[idx]
+				if V.ori == "H":
+					for c in range(Vj, Vj + V.len):
+						if (Vi, c) == pos:
+							return self.blocking_chain_depth(state, idx, visited, depth + 1)
+				else:
+					for r in range(Vi, Vi + V.len):
+						if (r, Vj) == pos:
+							return self.blocking_chain_depth(state, idx, visited, depth + 1)
+		return depth + 1
+
+		
+	# def heuristic(self, state: tuple[tuple[int, int]]) -> int:
+	# 	'''
+	# 	The state has to be pre-validated
+	# 	Counts the number of cars blocking the targeted car from reaching the goal
+		
+	# 	'''
+
+	# 	count = 0
+
+	# 	for idx in range(1, len(self.vehicles)):
+	# 		i, j = state[idx]
+	# 		target_i, target_j = state[0]
+	# 		if self.vehicles[idx].ori == "V":
+	# 			if (0 < target_i - i < self.vehicles[idx].len) and (target_j < j):
+	# 				count += 1
+	# 		else:
+	# 			if (target_i == i) and (target_j < j):
+	# 				count += 1
+
+	# 	return count
+
 	def heuristic(self, state: tuple[tuple[int, int]]) -> int:
-		'''
-		The state has to be pre-validated
-		Counts the number of cars blocking the targeted car from reaching the goal
-		'''
+		target_i, target_j = state[0]
+		s_len = self.vehicles[0].len
+		score = 0
 
-		count = 0
+		for col in range(target_j + s_len, 6):
+			pos = (target_i, col)
+			blocker_idx = None
+			for idx in range(1, len(self.vehicles)):
+				
+				Vi, Vj = state[idx]
+				V = self.vehicles[idx]
+				if V.ori == "H":
+					for c in range(Vj, Vj + V.len):
+						if (Vi, c) == pos:
+							blocker_idx = idx
+							break
+				else:
+					for r in range(Vi, Vi + V.len):
+						if (r, Vj) == pos:
+							blocker_idx = idx
+							break
+				if blocker_idx is not None:
+					break
+			if blocker_idx is not None:
+				score += 1
 
-		for idx in range(1, len(self.vehicles)):
-			i, j = state[idx]
-			target_i, target_j = state[0]
-			if self.vehicles[idx].ori == "V":
-				if (0 < target_i - i < self.vehicles[idx].len) and (target_j < j):
-					count += 1
-			else:
-				if (target_i == i) and (target_j < j):
-					count += 1
+				can_escape = False
+				for move_state in self.bfs(state):
+					if move_state[blocker_idx] != state[blocker_idx]:
+						can_escape = True
+						break
+					if not can_escape:
+						score += self.blocking_chain_depth(state, blocker_idx) * 10
+		
+		return score
 
-		return count
+			
 
 	def a_star(self):
-		pass
+		frontiers = [(self.heuristic(self.init_state), self.init_state)]
+		parents = {self.init_state: None}
+		true_cost = {self.init_state: 0}
+
+		while frontiers:
+			curr_cost, curr_state = heapq.heappop(frontiers)
+
+			if self.is_goal(curr_state):
+				path = []
+				cost = []
+				while curr_state is not None:
+					path.append(curr_state)
+					cost.append(true_cost[curr_state])
+					curr_state = parents[curr_state]
+				return path[::-1], cost[::-1]
+
+			for i, state in self.generate_move(curr_state):
+				cost = true_cost[curr_state] + self.vehicles[i].len
+				if state not in true_cost or true_cost[state] > cost:
+					true_cost[state] = cost
+					heapq.heappush(frontiers, (cost + self.heuristic(state), state))
+					parents[state] = curr_state
+		
+		return None
 
 #from copy import deepcopy
 #

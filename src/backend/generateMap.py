@@ -85,6 +85,12 @@ def rate_level_map(maps: list[list[dict]]):
             _, ucs_cost = ucs_result
             score += ucs_cost[-1] * pow(10, len(bfs_path))
 
+        # 4. A* cost
+        a_star_result = m.a_star()
+        if a_star_result:
+            _, a_star_cost = a_star_result
+            score += a_star_cost[-1] * pow(10, len(bfs_path) + len(ucs_cost))
+
         map_scores.append((score, vehicles_raw))
     map_scores.sort(key=lambda x: x[0])
 
@@ -107,6 +113,36 @@ def generate_map_json(num_map):
             [{"level": i + 1, "vehicles": v} for i, (_, v) in enumerate(vehicles)],
             f, indent=4
         )
+
+def generate_map_unsolve(option: str):
+    if(option == "bfs"):
+        while True:
+            vehicles = generate_random_map(6)
+            m = Map(tuple(tuple(v["pos"]) for v in vehicles), tuple(Vehicle(v["id"], v["length"], v["orientation"]) for v in vehicles))
+            if not m.bfs():
+                return vehicles
+    elif(option == "dfs"):
+        while True:
+            vehicles = generate_random_map(6)
+            m = Map(tuple(tuple(v["pos"]) for v in vehicles), tuple(Vehicle(v["id"], v["length"], v["orientation"]) for v in vehicles))
+            if not m.dfs():
+                return vehicles
+    elif(option == "ucs"):
+        while True:
+            vehicles = generate_random_map(6)
+            m = Map(tuple(tuple(v["pos"]) for v in vehicles), tuple(Vehicle(v["id"], v["length"], v["orientation"]) for v in vehicles))
+            if not m.ucs():
+                return vehicles
+    elif(option == "a_star"):
+        while True:
+            vehicles = generate_random_map(6)
+            m = Map(tuple(tuple(v["pos"]) for v in vehicles), tuple(Vehicle(v["id"], v["length"], v["orientation"]) for v in vehicles))
+            if not m.a_star():
+                return vehicles
+    else:
+        raise ValueError("Invalid option. Choose from 'bfs', 'dfs', 'ucs', or 'a_star'.")
+
+    
 
 if __name__ == "__main__":
     generate_map_json(10) 

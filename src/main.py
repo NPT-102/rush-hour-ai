@@ -1,12 +1,11 @@
+from gui.app import RushHourApp
 from backend import core
-from backend.gameClass import Map
 
-state, vehicles = core.map_loader('map.json', 0)
-m = Map(state, vehicles)
+map = "map.json"
 
-#path = m.bfs()
-#path = m.dfs()
-path, cost = m.ucs()
-
-for p, c in zip(path, cost):
-	print(f"{p} - {c}")
+gui = RushHourApp(
+    map_loader=core.map_loader,
+    map=map,
+    number_of_maps=10
+)
+gui.run()
