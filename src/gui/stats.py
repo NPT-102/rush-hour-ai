@@ -1,7 +1,7 @@
 import tkinter as tk
 
 class Stats(tk.Frame):
-    def __init__(self, parent=None, step=0, cost=0, time=0, expanded_nodes=0):
+    def __init__(self, parent=None, step=0, cost=0, time=0, expanded_nodes=0, memory_usage=0):
         super().__init__(parent)
         self.parent = parent
         if step < 0:
@@ -11,6 +11,7 @@ class Stats(tk.Frame):
         self.cost = cost
         self.time = time
         self.expanded_nodes = expanded_nodes
+        self.memory = memory_usage
         self.create_widget()
 
     def create_widget(self):
@@ -25,6 +26,10 @@ class Stats(tk.Frame):
         tk.Label(self, text="Search Time:").pack(side="left", padx=(20, 0))
         self.time_label = tk.Label(self, text=str(self.time) + "s")
         self.time_label.pack(side="left")
+        
+        tk.Label(self, text="Memory Usage:").pack(side="left", padx=(20, 0))
+        self.memory_label = tk.Label(self, text="0 KB")
+        self.memory_label.pack(side="left")
         
         tk.Label(self, text="Expanded Nodes:").pack(side="left", padx=(20, 0))
         self.expanded_nodes_label = tk.Label(self, text=str(self.expanded_nodes))
@@ -46,3 +51,7 @@ class Stats(tk.Frame):
     def update_expanded_nodes(self, expanded_nodes):
         self.expanded_nodes = expanded_nodes
         self.expanded_nodes_label.config(text=str(self.expanded_nodes))
+        
+    def update_memory(self, memory_usage):
+        self.memory = memory_usage
+        self.memory_label.config(text=f"{memory_usage / 1024:.2f} KB")

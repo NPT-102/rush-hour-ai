@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 import time
+import tracemalloc
 
 from gui.selector import Selector   
 from gui.controls import ControlButtons
@@ -27,8 +28,8 @@ class RushHourApp:
         self.search_time = 0
         self.expanded_nodes = 0
         self.is_running = False
+        self.memory = 0
         
-
         map_options = list(range(1, number_of_maps + 1))
         search_options = ["BFS", "DFS", "UCS", "A*"]
         self.selectors = Selector(
@@ -43,7 +44,8 @@ class RushHourApp:
         self.gameDisplay = GameDisplay(parent=self.window, vehicles=self.vehicles, state=self.init_state)
         self.gameDisplay.pack(pady=10)
         
-        self.stats = Stats(parent=self.window, step=self.step, cost=self.cost)
+        self.stats = Stats(parent=self.window, step=self.step, cost=self.cost, 
+                           time=self.search_time, expanded_nodes=self.expanded_nodes, memory_usage=self.memory)
         self.stats.pack(pady=10)
 
         self.controls = ControlButtons(
@@ -52,7 +54,6 @@ class RushHourApp:
             on_reset=self.reset
         )
         self.controls.pack(pady=10)
-
     
     def on_change(self):
         self.step += 1
@@ -61,7 +62,6 @@ class RushHourApp:
         else:
             self.cost = self.step
         self.stats.update_stats(self.step, self.cost)
-            
 
     def on_map_select(self, map_id):
         self.map_id = map_id
@@ -72,10 +72,11 @@ class RushHourApp:
         self.cost = 0
         self.search_time = 0
         self.expanded_nodes = 0
+        self.memory = 0
         self.stats.update_expanded_nodes(self.expanded_nodes)
         self.stats.update_time(self.search_time)
         self.stats.update_stats(self.step, self.cost)
-
+        self.stats.update_memory(self.memory)
 
     def on_search_select(self, search_algo):
         if self.map_object is None:
@@ -85,6 +86,8 @@ class RushHourApp:
         self.reset(False)
         self.costList = []
         start_time = time.time()
+        tracemalloc.start()
+        snapshot = tracemalloc.take_snapshot()
         if search_algo == "BFS":
             self.states, self.expanded_nodes = self.map_object.bfs()
         elif search_algo == "DFS":
@@ -93,7 +96,10 @@ class RushHourApp:
             self.states, self.costList, self.expanded_nodes = self.map_object.ucs()
         elif search_algo == "A*":
             self.states, self.costList, self.expanded_nodes = self.map_object.a_star()
-        
+        end_snapshot = tracemalloc.take_snapshot()
+        memory = end_snapshot.compare_to(snapshot, 'lineno')
+        self.memory = max(memory, key=lambda stat: stat.size_diff)
+        self.stats.update_memory(self.memory.size_diff)
         self.search_time = round(time.time() - start_time, 2)
         self.stats.update_time(self.search_time)
         self.stats.update_expanded_nodes(self.expanded_nodes)
@@ -120,7 +126,6 @@ class RushHourApp:
 
         self.window.after(1000, lambda: self.show_path())
     
-
     def show_step(self):
         state = self.states[self.step + 1]
         self.on_change()
@@ -144,14 +149,12 @@ class RushHourApp:
         self.gameDisplay.update_state(out_path)
         self.window.after(1000, lambda: self.exit(i + 1))
     
-    
     def play_pause(self):
         self.is_running = not self.is_running
         self.controls.toggled_play_pause(self.is_running)
         if self.is_running:
             self.show_path()
             
-    
     def reset(self, true_reset=True):
         self.is_running = False
         self.controls.toggled_play_pause(self.is_running)
@@ -162,11 +165,12 @@ class RushHourApp:
         self.stats.update_stats(self.step, self.cost)
         self.search_time = 0
         self.stats.update_time(self.search_time)
+        self.memory = 0
+        self.stats.update_memory(self.memory)
         self.gameDisplay.clear_state()
         self.gameDisplay.update(self.vehicles, self.init_state)
         if true_reset:
             messagebox.showinfo("Game reset", "The game has been reset to its initial state.")
-
 
     def run(self):
         self.window.mainloop()
