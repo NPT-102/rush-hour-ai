@@ -25,6 +25,7 @@ class RushHourApp:
         self.step = -1
         self.cost = 0
         self.search_time = 0
+        self.expanded_nodes = 0
         self.is_running = False
         
 
@@ -69,8 +70,10 @@ class RushHourApp:
         self.gameDisplay.update(vehicles=self.vehicles, state=self.init_state)
         self.step = -1
         self.cost = 0
-        search_time = 0
-        self.stats.update_time(search_time)
+        self.search_time = 0
+        self.expanded_nodes = 0
+        self.stats.update_expanded_nodes(self.expanded_nodes)
+        self.stats.update_time(self.search_time)
         self.stats.update_stats(self.step, self.cost)
 
 
@@ -83,16 +86,17 @@ class RushHourApp:
         self.costList = []
         start_time = time.time()
         if search_algo == "BFS":
-            self.states = self.map_object.bfs()
+            self.states, self.expanded_nodes = self.map_object.bfs()
         elif search_algo == "DFS":
-            self.states = self.map_object.dfs()
+            self.states, self.expanded_nodes = self.map_object.dfs()
         elif search_algo == "UCS":
-            self.states, self.costList = self.map_object.ucs()
+            self.states, self.costList, self.expanded_nodes = self.map_object.ucs()
         elif search_algo == "A*":
             self.states, self.costList = self.map_object.a_star()
         
         self.search_time = round(time.time() - start_time, 2)
         self.stats.update_time(self.search_time)
+        self.stats.update_expanded_nodes(self.expanded_nodes)
         self.search_algo = search_algo
         
         if self.states is None:
@@ -102,8 +106,6 @@ class RushHourApp:
         self.is_running = True
         self.controls.toggled_play_pause(self.is_running)
         self.show_path()
-
-    
 
     def show_path(self):
         if not self.is_running:
@@ -120,12 +122,11 @@ class RushHourApp:
     
 
     def show_step(self):
-            state = self.states[self.step + 1]
-            self.on_change()
-            self.gameDisplay.clear_state()
-            self.gameDisplay.update_state(state)
-            self.window.update()
-        
+        state = self.states[self.step + 1]
+        self.on_change()
+        self.gameDisplay.clear_state()
+        self.gameDisplay.update_state(state)
+        self.window.update()
     
     def exit(self, i=0):
         if i >= 3:
@@ -156,6 +157,8 @@ class RushHourApp:
         self.controls.toggled_play_pause(self.is_running)
         self.step = -1
         self.cost = 0
+        self.expanded_nodes = 0
+        self.stats.update_expanded_nodes(self.expanded_nodes)
         self.stats.update_stats(self.step, self.cost)
         self.search_time = 0
         self.stats.update_time(self.search_time)

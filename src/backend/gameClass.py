@@ -69,58 +69,65 @@ class Map:
 	def bfs(self, init_state = None) -> list[tuple[tuple[int, int]]]:
 		if init_state is None:
 			init_state = self.init_state
-		visited = []
+		expanded_nodes = 0
+		visited = set()
 		frontiers = deque([init_state])
 		parents = {init_state: None}
 
 		while frontiers:
 			current = frontiers.popleft()
-			visited.append(current)
+			visited.add(current)
 
 			if self.is_goal(current):
 				path = []
 				while current is not None:
 					path.append(current)
 					current = parents[current]
-				return path[::-1]
+				return path[::-1], expanded_nodes
 
 			for i, state in self.generate_move(current):
 				if state not in visited:
+					expanded_nodes += 1
 					parents[state] = current
 					frontiers.append(state)
 
-		return None
+		return None, 0
 
 	def dfs(self) -> list[tuple[tuple[int, int]]]:
-		visited = []
+		expanded_nodes = 0
+		visited = set()
 		frontiers = deque([self.init_state])
 		parents = {self.init_state: None}
 
 		while frontiers:
 			current = frontiers.pop()
-			visited.append(current)
+			visited.add(current)
 
 			if self.is_goal(current):
 				path = []
 				while current is not None:
 					path.append(current)
 					current = parents[current]
-				return path[::-1]
+				return path[::-1], expanded_nodes
 
 			for i, state in self.generate_move(current):
 				if state not in visited:
+					expanded_nodes += 1
 					parents[state] = current
 					frontiers.append(state)
 
-		return []
+		return None, 0
 
 	def ucs(self) -> list:
+		expanded_nodes = 0
 		frontiers = [(0, self.init_state)]
 		parents = {self.init_state: None}
 		true_cost = {self.init_state: 0}
 
 		while frontiers:
 			curr_cost, curr_state = heapq.heappop(frontiers)
+			if curr_cost > true_cost[curr_state]:
+				continue
 
 			if self.is_goal(curr_state):
 				path = []
@@ -129,16 +136,17 @@ class Map:
 					path.append(curr_state)
 					cost.append(true_cost[curr_state])
 					curr_state = parents[curr_state]
-				return path[::-1], cost[::-1]
+				return path[::-1], cost[::-1], expanded_nodes
 
 			for i, state in self.generate_move(curr_state):
 				cost = curr_cost + self.vehicles[i].len
 				if state not in true_cost or true_cost[state] > cost:
+					expanded_nodes += 1
 					true_cost[state] = cost
 					heapq.heappush(frontiers, (cost, state))
 					parents[state] = curr_state
 		
-		return None
+		return None, None, 0
 	
 	def blocking_chain_depth(self, state, inx_blocker, visited=None, depth=1)->int:
 		if visited is None:
@@ -151,7 +159,6 @@ class Map:
 			if move_state[inx_blocker] != state[inx_blocker]:
 				return depth
 			
-
 		visited.add(inx_blocker)
 		blocker = self.vehicles[inx_blocker]
 		i, j = state[inx_blocker]
@@ -178,28 +185,6 @@ class Map:
 						if (r, Vj) == pos:
 							return self.blocking_chain_depth(state, idx, visited, depth + 1)
 		return depth + 1
-
-		
-	# def heuristic(self, state: tuple[tuple[int, int]]) -> int:
-	# 	'''
-	# 	The state has to be pre-validated
-	# 	Counts the number of cars blocking the targeted car from reaching the goal
-		
-	# 	'''
-
-	# 	count = 0
-
-	# 	for idx in range(1, len(self.vehicles)):
-	# 		i, j = state[idx]
-	# 		target_i, target_j = state[0]
-	# 		if self.vehicles[idx].ori == "V":
-	# 			if (0 < target_i - i < self.vehicles[idx].len) and (target_j < j):
-	# 				count += 1
-	# 		else:
-	# 			if (target_i == i) and (target_j < j):
-	# 				count += 1
-
-	# 	return count
 
 	def heuristic(self, state: tuple[tuple[int, int]]) -> int:
 		target_i, target_j = state[0]
@@ -238,15 +223,16 @@ class Map:
 		
 		return score
 
-			
-
 	def a_star(self):
+		expanded_nodes = 0
 		frontiers = [(self.heuristic(self.init_state), self.init_state)]
 		parents = {self.init_state: None}
 		true_cost = {self.init_state: 0}
 
 		while frontiers:
 			curr_cost, curr_state = heapq.heappop(frontiers)
+			if curr_cost > true_cost[curr_state]:
+				continue
 
 			if self.is_goal(curr_state):
 				path = []
@@ -255,108 +241,14 @@ class Map:
 					path.append(curr_state)
 					cost.append(true_cost[curr_state])
 					curr_state = parents[curr_state]
-				return path[::-1], cost[::-1]
+				return path[::-1], cost[::-1], expanded_nodes
 
 			for i, state in self.generate_move(curr_state):
 				cost = true_cost[curr_state] + self.vehicles[i].len
 				if state not in true_cost or true_cost[state] > cost:
+					expanded_nodes += 1
 					true_cost[state] = cost
 					heapq.heappush(frontiers, (cost + self.heuristic(state), state))
 					parents[state] = curr_state
 		
-		return None
-
-#from copy import deepcopy
-#
-#class Vehicle:
-#    def __init__(self, id: str, pos: tuple[int, int], orientation: str, length: int):
-#        if type(id) is not str:
-#            raise TypeError("Vehicle ID must be a string")
-#        else:
-#            self.id = id
-#        
-#        if length not in (2, 3):
-#            raise ValueError("Vehicle length must be 2 or 3")
-#        else: 
-#            self.length = length
-#        
-#        if (pos[0] < 0 or pos[0] >= 6) or (pos[1] < 0 or pos[1] >= 6):
-#            raise ValueError("Position must be within the grid (0-5, 0-5)")
-#        else:
-#            self.pos = pos
-#        
-#        if orientation not in ("horizontal", "vertical"):
-#            raise ValueError("orientation must be 'horizontal' or 'vertical'")
-#        else:
-#            self.orientation = orientation
-#        
-#    
-#class Board:
-#    def __init__(self, vehicles: list[Vehicle], rows=6, cols=6):
-#        self.rows = rows
-#        self.cols = cols
-#        self.vehicles = vehicles
-#        self.init_board()
-#
-#    def init_board(self):
-#        self.board = [['.' for _ in range(self.cols)] for _ in range(self.rows)]
-#        for vehicle in self.vehicles:
-#            if vehicle.orientation == "horizontal":
-#                for i in range(vehicle.length):
-#                    self.board[vehicle.pos[0]][vehicle.pos[1] + i] = vehicle.id
-#            else:
-#                for i in range(vehicle.length):
-#                    self.board[vehicle.pos[0] + i][vehicle.pos[1]] = vehicle.id
-#    
-#                    
-#    def clear_board(self):
-#        self.board = [['.' for _ in range(self.cols)] for _ in range(self.rows)]
-#        
-#    def is_finished(self):
-#        for vehicle in self.vehicles:
-#            if vehicle.id == "X":
-#                if vehicle.orientation == "horizontal":
-#                    if vehicle.pos[0] == 2 and vehicle.pos[1] + vehicle.length - 1 == 5:
-#                        return True
-#        return False
-#    
-#    def copyBoard(self):
-#        v = deepcopy(self.vehicles)
-#        return Board(v)
-#    
-#    
-#    def move(self, id: str, step=1):
-#        if step not in [-1, 1]:
-#            raise ValueError("Must take only 1 step at a time")
-#        
-#        vehicles = deepcopy(self.vehicles)
-#        
-#        for v in vehicles:
-#            if v.id == id:
-#                vehicle = v
-#                break
-#        else:
-#            raise ValueError("ID not exist")
-#        
-#        i, j = vehicle.pos
-#
-#        if vehicle.orientation == "horizontal":
-#            start, end = j, j + vehicle.length
-#            if (step == 1) and (end >= self.cols or self.board[i][end] != '.'):
-#                return None
-#            if (step != 1) and (start <= 0 or self.board[i][start - 1] != '.'):
-#                return None
-#            
-#            vehicle.pos = (i, j + step)
-#            
-#        else:
-#            start, end = i, i + vehicle.length
-#            if (step == 1) and (end >= self.rows or self.board[end][j] != '.'):
-#                return None
-#            if (step != 1) and (start <= 0 or self.board[start - 1][j] != '.'):
-#                return None
-#            
-#            vehicle.pos = (i + step, j)
-#
-#        return Board(vehicles)
-#
+		return None, None, 0
