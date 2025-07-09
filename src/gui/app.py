@@ -66,6 +66,7 @@ class RushHourApp:
     def on_map_select(self, map_id):
         self.map_id = map_id
         self.init_state, self.vehicles = self.map_loader(self.map_file, int(map_id) - 1)
+        self.reset(False)
         self.map_object = Map(self.init_state, self.vehicles)
         self.gameDisplay.update(vehicles=self.vehicles, state=self.init_state)
         self.step = -1
@@ -87,6 +88,7 @@ class RushHourApp:
         self.costList = []
         start_time = time.time()
         tracemalloc.start()
+        
         if search_algo == "BFS":
             self.states, self.expanded_nodes = self.map_object.bfs()
         elif search_algo == "DFS":
@@ -95,8 +97,9 @@ class RushHourApp:
             self.states, self.costList, self.expanded_nodes = self.map_object.ucs()
         elif search_algo == "A*":
             self.states, self.costList, self.expanded_nodes = self.map_object.a_star()
-        current, peak = tracemalloc.get_traced_memory()
-        self.memory = peak
+        
+        self.memory = tracemalloc.get_traced_memory()[1] / 1024
+        tracemalloc.stop()
         self.stats.update_memory(self.memory)
         self.search_time = round(time.time() - start_time, 2)
         self.stats.update_time(self.search_time)
