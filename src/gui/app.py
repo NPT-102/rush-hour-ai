@@ -87,7 +87,6 @@ class RushHourApp:
         self.costList = []
         start_time = time.time()
         tracemalloc.start()
-        snapshot = tracemalloc.take_snapshot()
         if search_algo == "BFS":
             self.states, self.expanded_nodes = self.map_object.bfs()
         elif search_algo == "DFS":
@@ -96,10 +95,9 @@ class RushHourApp:
             self.states, self.costList, self.expanded_nodes = self.map_object.ucs()
         elif search_algo == "A*":
             self.states, self.costList, self.expanded_nodes = self.map_object.a_star()
-        end_snapshot = tracemalloc.take_snapshot()
-        memory = end_snapshot.compare_to(snapshot, 'lineno')
-        self.memory = max(memory, key=lambda stat: stat.size_diff)
-        self.stats.update_memory(self.memory.size_diff)
+        current, peak = tracemalloc.get_traced_memory()
+        self.memory = peak
+        self.stats.update_memory(self.memory)
         self.search_time = round(time.time() - start_time, 2)
         self.stats.update_time(self.search_time)
         self.stats.update_expanded_nodes(self.expanded_nodes)
