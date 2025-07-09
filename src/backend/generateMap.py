@@ -17,7 +17,6 @@ def generate_random_map(num_v):
                 for i in range(v["length"]):
                     take[v["pos"][0] + i][v["pos"][1]] = 1
 
-    # Add red car
     s_col = random.randint(0, grid_size - 4)
     car_S = {
         "id": "S",
@@ -30,7 +29,7 @@ def generate_random_map(num_v):
 
     candidate_ids = [chr(i) for i in range(ord('A'), ord('Z') + 1) if chr(i) != 'S']
     count_installed = 1
-    attempts = 0  # avoid infinite loop
+    attempts = 0
     max_attempts = 1000
 
     while count_installed < num_v and attempts < max_attempts and candidate_ids:
@@ -56,14 +55,13 @@ def generate_random_map(num_v):
             "orientation": orientation
         }
 
-        # Check no overlap
         if not any(
             take[row + (i if orientation == "V" else 0)][col + (i if orientation == "H" else 0)]
             for i in range(length)
         ):
             vehicles.append(new_vehicle)
             mark_vehicle([new_vehicle])
-            candidate_ids.remove(temp_id)  # only remove when placed successfully
+            candidate_ids.remove(temp_id)
             count_installed += 1
 
     return vehicles
@@ -73,63 +71,59 @@ def rate_level_map(maps: list[list[dict]]):
     map_scores = []
 
     for idx, vehicles_raw in enumerate(maps):
-        # Load state & vehicles
         state = tuple(tuple(v["pos"]) for v in vehicles_raw)
         vehicles = tuple(Vehicle(v["id"], v["length"], v["orientation"]) for v in vehicles_raw)
         m = Map(state, vehicles)
 
-        score = 0
-        # # 1. number of vehicles
-        score += len(vehicles)
+        score = len(vehicles)
 
-        # # 2. BFS steps
-        bfs_path = m.bfs()
-        if bfs_path:
+        bfs_result = m.bfs()
+        if bfs_result:
+            bfs_path, _ = bfs_result
             score += (len(bfs_path) - 1) * 10
-        # # 3. UCS cost
         ucs_result = m.ucs()
         if ucs_result:
-            _, ucs_cost = ucs_result
-            score += ucs_cost[-1] * pow(10, len(str(score)))
-
-        
-
+            ucs_path, ucs_cost, _ = ucs_result
+            if ucs_cost:
+                score += ucs_cost[-1] * pow(10, len(str(score)))
+            else:
+                print(f"[WARN] UCS returned None cost at map {idx}")
+        else:
+            print(f"[WARN] UCS failed at map {idx}")
+        print(f"Map {idx + 1}: Score = {score}, Vehicles = {len(vehicles_raw)} cars")
         map_scores.append((score, vehicles_raw))
-    map_scores.sort(key=lambda x: x[0])
 
+    map_scores.sort(key=lambda x: x[0])
     return map_scores
 
 
 def generate_level_map(num_map):
-    map = []
-    while len(map) < num_map:
-        num_v = random.randint(4, 9)
-        vehicles = generate_random_map(num_v)
+    maps = []
+    while len(maps) < num_map:
+        num_v = random.randint(6, 9)
+        print(f"Generating map with {num_v} vehicles...")
+        vehicles = generate_challenging_map(num_v)
+        print(f"Generated map with {len(vehicles)} vehicles.")
+        score, vehicles_data = rate_level_map([vehicles])[0]
+        maps.append((score, vehicles_data))
 
-        map_with_score = rate_level_map([vehicles])[0]
-        score, vehicles_data = map_with_score
+    maps.sort(key=lambda x: x[0])
+    return maps
 
-        
-        map.append((score, vehicles_data))
-
-    map.sort(key=lambda x: x[0])  # Keep the map sorted by score
-    return map
 
 def generate_map_json(num_map):
-    vehicles = generate_map_with_exact_steps(15, algo='bfs', max_attempts=10000)
-    
+    vehicles = generate_level_map(num_map)
+
     print("Scoring levels:")
-    for i, v in enumerate(vehicles):
-        print(f"Level {i + 1}: Vehicles = {len(v)} cars")
-    
+    for i, (_, vlist) in enumerate(vehicles):
+        print(f"Level {i + 1}: Vehicles = {len(vlist)} cars")
+
     with open('map.json', 'w') as f:
         json.dump(
             [{"level": i + 1, "vehicles": v} for i, (_, v) in enumerate(vehicles)],
             f, indent=4
         )
-
-
-
+    print(f" Done generating map.json with {num_map} levels.")
 
 
 with open("templates.json") as f:
@@ -156,20 +150,24 @@ def generate_challenging_map(num_v=6):
             if r >= grid_size or c >= grid_size or take[r][c] != 0:
                 return False
         return True
-    
-    # Chọn ngẫu nhiên một template
-    template = random.choice(TEMPLATES)
-    
 
-    for v in template:
-        if not is_valid(v):
-            print(f"[SKIP] Invalid template: vehicle {v['id']} at {v['pos']}")
-            return generate_challenging_map()
+    MAX_RETRY = 20
+    for _ in range(MAX_RETRY):
+        template = random.choice(TEMPLATES)
+        valid = True
+        for v in template:
+            if not is_valid(v):
+                valid = False
+                break
 
-        vehicles.append(v)
-        mark(v)
+        if valid:
+            for v in template:
+                vehicles.append(v)
+                mark(v)
+            break
+    else:
+        raise ValueError("Too many invalid template retries.")
 
-    # Fillers (ngẫu nhiên) để tăng độ nhiễu
     candidate_ids = [chr(i) for i in range(ord('D'), ord('Z') + 1) if chr(i) not in ['S', 'A', 'B', 'C']]
     random.shuffle(candidate_ids)
 
@@ -202,36 +200,6 @@ def generate_challenging_map(num_v=6):
     return vehicles
 
 
-def generate_map_with_exact_steps(k: int, algo: str = 'bfs', max_attempts=100000):
-    while True:
-        num_v= random.randint(7, 9)
-        vehicles = generate_random_map(num_v)  # dùng hàm bạn đã có
-        state = tuple(tuple(v["pos"]) for v in vehicles)
-        vehicle_objs = tuple(Vehicle(v["id"], v["length"], v["orientation"]) for v in vehicles)
-        m = Map(state, vehicle_objs)
-
-        # chọn thuật toán
-        if algo == 'bfs':
-            result = m.bfs()
-        elif algo == 'dfs':
-            result = m.dfs()
-        elif algo == 'ucs':
-            result = m.ucs()
-            result = result[0] if result else None
-        elif algo == 'a_star':
-            result = m.a_star()
-            result = result[0] if result else None
-        else:
-            raise ValueError("Invalid algorithm")
-
-        if result and len(result) - 1 >= k:
-            print(f"✔ Found map with exactly {k} steps using {algo} ")
-            return vehicles
-
-    raise ValueError(f"❌ Cannot generate map with {k} steps using {algo} after {max_attempts} attempts.")
-
-
-
 if __name__ == "__main__":
-    generate_map_json(10) 
-    print("Done generating map.json with 10 levels.")
+    num_levels = 5
+    generate_map_json(num_levels)
