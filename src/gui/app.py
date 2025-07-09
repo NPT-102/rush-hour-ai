@@ -16,7 +16,7 @@ class RushHourApp:
         self.map_file = map
         self.window = tk.Tk()
         self.window.title("Rush Hour")
-        self.window.geometry("800x700")
+        self.window.state("zoomed")
         
         # Initial state
         self.init_state = None
