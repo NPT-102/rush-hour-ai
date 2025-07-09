@@ -98,7 +98,7 @@ class RushHourApp:
         elif search_algo == "A*":
             self.states, self.costList, self.expanded_nodes = self.map_object.a_star()
         
-        self.memory = tracemalloc.get_traced_memory()[1] / 1024
+        self.memory = tracemalloc.get_traced_memory()[1]
         tracemalloc.stop()
         self.stats.update_memory(self.memory)
         self.search_time = round(time.time() - start_time, 2)
