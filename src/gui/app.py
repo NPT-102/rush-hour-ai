@@ -16,7 +16,7 @@ class RushHourApp:
         self.map_file = map
         self.window = tk.Tk()
         self.window.title("Rush Hour")
-        self.window.geometry("800x700")
+        self.window.state("zoomed")
         
         # Initial state
         self.init_state = None
@@ -66,6 +66,7 @@ class RushHourApp:
     def on_map_select(self, map_id):
         self.map_id = map_id
         self.init_state, self.vehicles = self.map_loader(self.map_file, int(map_id) - 1)
+        self.reset(False)
         self.map_object = Map(self.init_state, self.vehicles)
         self.gameDisplay.update(vehicles=self.vehicles, state=self.init_state)
         self.step = -1
@@ -87,7 +88,7 @@ class RushHourApp:
         self.costList = []
         start_time = time.time()
         tracemalloc.start()
-        snapshot = tracemalloc.take_snapshot()
+        
         if search_algo == "BFS":
             self.states, self.expanded_nodes = self.map_object.bfs()
         elif search_algo == "DFS":
@@ -96,10 +97,10 @@ class RushHourApp:
             self.states, self.costList, self.expanded_nodes = self.map_object.ucs()
         elif search_algo == "A*":
             self.states, self.costList, self.expanded_nodes = self.map_object.a_star()
-        end_snapshot = tracemalloc.take_snapshot()
-        memory = end_snapshot.compare_to(snapshot, 'lineno')
-        self.memory = max(memory, key=lambda stat: stat.size_diff)
-        self.stats.update_memory(self.memory.size_diff)
+        
+        self.memory = tracemalloc.get_traced_memory()[1]
+        tracemalloc.stop()
+        self.stats.update_memory(self.memory)
         self.search_time = round(time.time() - start_time, 2)
         self.stats.update_time(self.search_time)
         self.stats.update_expanded_nodes(self.expanded_nodes)
@@ -117,9 +118,12 @@ class RushHourApp:
         if not self.is_running:
             return
         
-        if self.step + 1 >= len(self.states):
+        if self.step + 1 == len(self.states):
+            self.step += 1
             messagebox.showinfo("End of Solution", "Reached the end of the solution path.")
             self.exit()
+            return
+        elif self.step + 1 > len(self.states):
             return
 
         self.show_step()
