@@ -117,9 +117,12 @@ class RushHourApp:
         if not self.is_running:
             return
         
-        if self.step + 1 >= len(self.states):
+        if self.step + 1 == len(self.states):
+            self.step += 1
             messagebox.showinfo("End of Solution", "Reached the end of the solution path.")
             self.exit()
+            return
+        elif self.step + 1 > len(self.states):
             return
 
         self.show_step()
