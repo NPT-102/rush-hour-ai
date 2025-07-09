@@ -54,4 +54,4 @@ class Stats(tk.Frame):
         
     def update_memory(self, memory_usage):
         self.memory = memory_usage
-        self.memory_label.config(text=f"{memory_usage / 1024:.2f} KB")
+        self.memory_label.config(text=f"{memory_usage / 1024 / 1024:.2f} MB")
