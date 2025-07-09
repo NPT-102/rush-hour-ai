@@ -72,7 +72,7 @@
                     3,
                     0
                 ],
-                "orientation": "V"
+                "orientation": "H"
             },
             {
                 "id": "H",
@@ -149,7 +149,7 @@
                     3,
                     2
                 ],
-                "orientation": "H"
+                "orientation": "V"
             },
             {
                 "id": "G",
@@ -277,16 +277,7 @@
                 "id": "I",
                 "length": 3,
                 "pos": [
-                    2,
-                    4
-                ],
-                "orientation": "V"
-            },
-            {
-                "id": "O",
-                "length": 2,
-                "pos": [
-                    0,
+                    3,
                     3
                 ],
                 "orientation": "V"
@@ -336,8 +327,8 @@
                 "id": "C",
                 "length": 2,
                 "pos": [
-                    0,
-                    4
+                    5,
+                    0
                 ],
                 "orientation": "H"
             },
@@ -538,7 +529,7 @@
                     0,
                     0
                 ],
-                "orientation": "V"
+                "orientation": "H"
             },
             {
                 "id": "B",
@@ -571,19 +562,10 @@
                 "id": "E",
                 "length": 2,
                 "pos": [
-                    4,
+                    5,
                     4
                 ],
-                "orientation": "V"
-            },
-            {
-                "id": "H",
-                "length": 2,
-                "pos": [
-                    2,
-                    5
-                ],
-                "orientation": "V"
+                "orientation": "H"
             },
             {
                 "id": "F",
@@ -702,15 +684,6 @@
                 "id": "F",
                 "length": 2,
                 "pos": [
-                    4,
-                    0
-                ],
-                "orientation": "H"
-            },
-            {
-                "id": "L",
-                "length": 3,
-                "pos": [
                     1,
                     4
                 ],
@@ -809,7 +782,7 @@
                     3,
                     0
                 ],
-                "orientation": "H"
+                "orientation": "V"
             },
             {
                 "id": "E",
@@ -875,7 +848,7 @@
                 "length": 2,
                 "pos": [
                     2,
-                    1
+                    0
                 ],
                 "orientation": "H"
             },
