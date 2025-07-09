@@ -148,80 +148,55 @@ class Map:
 		
 		return None, None, 0
 	
-	def blocking_chain_depth(self, state, inx_blocker, visited=None, depth=1)->int:
+	def blocking_chain_depth(self, state, idx, visited=None, depth=1, max_depth=3):
 		if visited is None:
 			visited = set()
+		if depth > max_depth or idx in visited:
+			return depth
+		visited.add(idx)
 
-		if inx_blocker in visited:
-			return float("inf")
+		blocker = self.vehicles[idx]
+		i, j = state[idx]
+		occupied = [(i + d, j) if blocker.ori == "V" else (i, j + d) for d in range(blocker.len)]
 
-		for move_state in self.bfs(state):
-			if move_state[inx_blocker] != state[inx_blocker]:
-				return depth
-			
-		visited.add(inx_blocker)
-		blocker = self.vehicles[inx_blocker]
-		i, j = state[inx_blocker]
-		blocked_positions = []
-		if blocker.ori == "H":
-			for c in range(j, j + blocker.len):
-				blocked_positions.append((i, c))
-		else:
-			for r in range(i, i + blocker.len):
-				blocked_positions.append((r, j))
-		
-		for pos in blocked_positions:
-			for idx in range(1, len(self.vehicles)):
-				if idx == inx_blocker:
+		for pos in occupied:
+			for k in range(1, len(self.vehicles)):
+				if k == idx:
 					continue
-				Vi, Vj = state[idx]
-				V = self.vehicles[idx]
-				if V.ori == "H":
-					for c in range(Vj, Vj + V.len):
-						if (Vi, c) == pos:
-							return self.blocking_chain_depth(state, idx, visited, depth + 1)
-				else:
-					for r in range(Vi, Vi + V.len):
-						if (r, Vj) == pos:
-							return self.blocking_chain_depth(state, idx, visited, depth + 1)
-		return depth + 1
-
-	def heuristic(self, state: tuple[tuple[int, int]]) -> int:
-		target_i, target_j = state[0]
-		s_len = self.vehicles[0].len
-		score = 0
-
-		for col in range(target_j + s_len, 6):
-			pos = (target_i, col)
-			blocker_idx = None
-			for idx in range(1, len(self.vehicles)):
-				
-				Vi, Vj = state[idx]
-				V = self.vehicles[idx]
-				if V.ori == "H":
-					for c in range(Vj, Vj + V.len):
-						if (Vi, c) == pos:
-							blocker_idx = idx
-							break
-				else:
-					for r in range(Vi, Vi + V.len):
-						if (r, Vj) == pos:
-							blocker_idx = idx
-							break
-				if blocker_idx is not None:
-					break
-			if blocker_idx is not None:
-				score += 1
-
-				can_escape = False
-				for move_state in self.bfs(state):
-					if move_state[blocker_idx] != state[blocker_idx]:
-						can_escape = True
-						break
-					if not can_escape:
-						score += self.blocking_chain_depth(state, blocker_idx) * 10
+				vi, vj = state[k]
+				v = self.vehicles[k]
+				occ = [(vi + d, vj) if v.ori == "V" else (vi, vj + d) for d in range(v.len)]
+				if pos in occ:
+					return self.blocking_chain_depth(state, k, visited, depth + 1, max_depth)
 		
+		return depth
+
+
+	def heuristic(self, state):
+		score = 0
+		s_i, s_j = state[0]
+		s_len = self.vehicles[0].len
+
+		# Số ô từ đuôi xe S đến lối ra
+		distance = 5 - (s_j + s_len - 1)
+		score += distance * 5
+
+		# Duyệt từng ô phía trước xe S
+		for col in range(s_j + s_len, 6):
+			pos = (s_i, col)
+			for idx in range(1, len(self.vehicles)):
+				vi, vj = state[idx]
+				v = self.vehicles[idx]
+
+				occupied = [(vi + i, vj) if v.ori == "V" else (vi, vj + i) for i in range(v.len)]
+				if pos in occupied:
+					score += 10  # base block penalty
+					# Không dùng BFS, chỉ tính chain block giả định
+					score += self.blocking_chain_depth(state, idx, max_depth=3) * 5
+					break
+
 		return score
+
 
 	def a_star(self):
 		expanded_nodes = 0
