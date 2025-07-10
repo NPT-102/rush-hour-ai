@@ -68,16 +68,6 @@ class RushHourApp:
         self.init_state, self.vehicles = self.map_loader(self.map_file, int(map_id) - 1)
         self.reset(False)
         self.map_object = Map(self.init_state, self.vehicles)
-        self.gameDisplay.update(vehicles=self.vehicles, state=self.init_state)
-        self.step = -1
-        self.cost = 0
-        self.search_time = 0
-        self.expanded_nodes = 0
-        self.memory = 0
-        self.stats.update_expanded_nodes(self.expanded_nodes)
-        self.stats.update_time(self.search_time)
-        self.stats.update_stats(self.step, self.cost)
-        self.stats.update_memory(self.memory)
 
     def on_search_select(self, search_algo):
         if self.map_object is None:
