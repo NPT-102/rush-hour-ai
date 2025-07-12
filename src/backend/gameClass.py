@@ -177,11 +177,9 @@ class Map:
 		s_i, s_j = state[0]
 		s_len = self.vehicles[0].len
 
-		# Số ô từ đuôi xe S đến lối ra
 		distance = 5 - (s_j + s_len - 1)
 		score += distance * 5
 
-		# Duyệt từng ô phía trước xe S
 		for col in range(s_j + s_len, 6):
 			pos = (s_i, col)
 			for idx in range(1, len(self.vehicles)):
@@ -191,7 +189,6 @@ class Map:
 				occupied = [(vi + i, vj) if v.ori == "V" else (vi, vj + i) for i in range(v.len)]
 				if pos in occupied:
 					score += 10  # base block penalty
-					# Không dùng BFS, chỉ tính chain block giả định
 					score += self.blocking_chain_depth(state, idx, max_depth=3) * 5
 					break
 
