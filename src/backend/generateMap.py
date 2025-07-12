@@ -1,5 +1,7 @@
 import json
 import random
+import multiprocessing
+import time
 from gameClass import Map, Vehicle
 
 def generate_random_map(num_v):
@@ -81,15 +83,15 @@ def rate_level_map(maps: list[list[dict]]):
         if bfs_result:
             bfs_path, _ = bfs_result
             score += (len(bfs_path) - 1) * 10
-        ucs_result = m.ucs()
+
+        ucs_result = run_with_timeout(m.ucs, timeout=30)
         if ucs_result:
             ucs_path, ucs_cost, _ = ucs_result
             if ucs_cost:
                 score += ucs_cost[-1] * pow(10, len(str(score)))
-            else:
-                print(f"[WARN] UCS returned None cost at map {idx}")
         else:
-            print(f"[WARN] UCS failed at map {idx}")
+            print(f"[TIMEOUT] UCS took too long at map {idx}")
+
         print(f"Map {idx + 1}: Score = {score}, Vehicles = {len(vehicles_raw)} cars")
         map_scores.append((score, vehicles_raw))
 
@@ -199,6 +201,23 @@ def generate_challenging_map(num_v=6):
 
     return vehicles
 
+def run_with_timeout(func, args=(), timeout=30):
+    def wrapper(q, *args):
+        try:
+            result = func(*args)
+            q.put(result)
+        except Exception as e:
+            q.put(None)
+
+    q = multiprocessing.Queue()
+    p = multiprocessing.Process(target=wrapper, args=(q, *args))
+    p.start()
+    p.join(timeout)
+    if p.is_alive():
+        p.terminate()
+        p.join()
+        return None
+    return q.get() if not q.empty() else None
 
 if __name__ == "__main__":
     num_levels = 5
