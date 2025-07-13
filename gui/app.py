@@ -7,7 +7,7 @@ from gui.selector import Selector
 from gui.controls import ControlButtons
 from gui.stats import Stats
 from gui.gameDisplay import GameDisplay
-from backend.gameClass import Map
+from logic.gameClass import Map
 
 
 class RushHourApp:

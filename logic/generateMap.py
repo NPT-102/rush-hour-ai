@@ -1,8 +1,8 @@
 import json
 import random
 import multiprocessing
-import time
-from gameClass import Map, Vehicle
+
+from logic.gameClass import Map, Vehicle
 
 def generate_random_map(num_v):
     grid_size = 6

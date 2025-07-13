@@ -1,5 +1,6 @@
 import json
-from .gameClass import Map, Vehicle
+
+from logic.gameClass import Vehicle
 
 def map_loader(path, level):
     if level is None:
