@@ -3,11 +3,11 @@ from tkinter import messagebox
 import time
 import tracemalloc
 
-from gui.selector import Selector   
-from gui.controls import ControlButtons
-from gui.stats import Stats
-from gui.gameDisplay import GameDisplay
-from logic.gameClass import Map
+from Gui.selector import Selector   
+from Gui.controls import ControlButtons
+from Gui.stats import Stats
+from Gui.gameDisplay import GameDisplay
+from Logic.gameClass import Map
 
 
 class RushHourApp:
@@ -18,7 +18,6 @@ class RushHourApp:
         self.window.title("Rush Hour")
         self.window.state("zoomed")
         
-        # Initial state
         self.init_state = None
         self.vehicles = None
         self.map_object = None

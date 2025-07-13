@@ -1,7 +1,7 @@
-from gui.app import RushHourApp
-from logic import core
+from Gui.app import RushHourApp
+from Logic import core
 
-map = "map/map.json"
+map = "Map/map.json"
 
 gui = RushHourApp(
     map_loader=core.map_loader,

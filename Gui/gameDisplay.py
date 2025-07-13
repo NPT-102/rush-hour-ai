@@ -20,7 +20,7 @@ class GameDisplay(tk.Frame):
             self.set_vehicles()
         
     def set_background(self):
-        board_img = Image.open("assets/board.png")
+        board_img = Image.open("Assets/board.png")
         self.board_img = ImageTk.PhotoImage(board_img)
         
         self.canvas.create_image(0, 0, anchor=tk.NW, image=self.board_img)
@@ -35,7 +35,7 @@ class GameDisplay(tk.Frame):
     def set_assets(self):
         self.imgs = []
         for i in range(len(self.vehicles)):
-            dir = "assets/"
+            dir = "Assets/"
             if self.vehicles[i].id == 'S':
                 dir = dir + "S.png"
             else:
